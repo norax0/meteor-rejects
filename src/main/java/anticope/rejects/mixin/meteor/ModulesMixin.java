@@ -18,8 +18,11 @@ public class ModuleMixin {
 
     @Mutable @Shadow public String title;
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void onInit(Category category, String name, String description, String[] aliases, CallbackInfo info) {
+    @Inject(
+            method = "<init>(Lmeteordevelopment/meteorclient/systems/modules/Category;Ljava/lang/String;Ljava/lang/String;)V",
+            at = @At("TAIL")
+    )
+    private void onInit(Category category, String name, String description, CallbackInfo info) {
         if (RejectsConfig.get().duplicateModuleNames) {
             this.name = RejectsUtils.getModuleName(name);
             this.title = Utils.nameToTitle(this.name);
