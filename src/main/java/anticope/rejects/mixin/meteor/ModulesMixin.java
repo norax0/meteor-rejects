@@ -1,36 +1,28 @@
 package anticope.rejects.mixin.meteor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import anticope.rejects.utils.RejectsConfig;
-import org.spongepowered.asm.mixin.Final;
+import anticope.rejects.utils.RejectsUtils;
+import meteordevelopment.meteorclient.systems.modules.Category;
+import meteordevelopment.meteorclient.systems.modules.Module;
+import meteordevelopment.meteorclient.utils.Utils;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import meteordevelopment.meteorclient.systems.modules.Category;
-import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.meteorclient.systems.modules.Modules;
+@Mixin(value = Module.class, remap = false)
+public class ModuleMixin {
+    @Mutable @Shadow public String name;
 
-@Mixin(Modules.class)
-public class ModulesMixin {
-    @Shadow(remap = false)
-    @Final
-    private Map<Category, List<Module>> groups;
+    @Mutable @Shadow public String title;
 
-    @Inject(method = "getGroup", at=@At("HEAD"), cancellable = true, remap = false)
-    private void onGetGroup(Category category, CallbackInfoReturnable<List<Module>> cir) {
-        Set<String> hiddenModules = RejectsConfig.get().hiddenModules;
-        if (hiddenModules.isEmpty()) return;
-
-        List<Module> foundModules = groups.computeIfAbsent(category, category1 -> new ArrayList<>());
-        foundModules.removeIf(m -> hiddenModules.contains(m.name));
-
-        cir.setReturnValue(foundModules);
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void onInit(Category category, String name, String description, String[] aliases, CallbackInfo info) {
+        if (RejectsConfig.get().duplicateModuleNames) {
+            this.name = RejectsUtils.getModuleName(name);
+            this.title = Utils.nameToTitle(this.name);
+        }
     }
 }
